@@ -37,3 +37,4 @@ jobs:
         context: .
         push: true
         tags: eechukwu/demo-apps:${{ github.sha }}
+        platforms: linux/amd64,linux/arm64
