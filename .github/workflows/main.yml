@@ -1,31 +1,37 @@
-name: Build and Push Docker Image
+name: Java CI with Gradle and Docker Build/Push
 
 on:
   push:
-    branches:
-      - master
+    branches: [ master ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-  build-and-push-image:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout Code
       uses: actions/checkout@v2
-    - name: Set up JDK 11
-      uses: actions/setup-java@v2
+
+    - name: Set up JDK 11 with Gradle
+      uses: actions/setup-java@v1
       with:
-        java-version: '11'
-        distribution: 'temurin'
+        java-version: 11
+        distribution: 'adopt'
+        gradle-version: 7.0.2
+
     - name: Build with Gradle
-      run: ./gradlew build
-    - name: Copy files to Docker build context
-      run: cp -R build/libs Docker/
-    - name: Login to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        ./gradlew build --no-daemon --stacktrace
+
+    - name: Configure Docker
+      uses: docker/setup-buildx-action@v1
+
     - name: Build and Push Docker Image
       uses: docker/build-push-action@v2
       with:
